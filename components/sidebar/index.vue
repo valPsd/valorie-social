@@ -12,7 +12,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div>
+    <div class="col-span-2">
         <!-- mobile -->
         <div class="z-50 flex lg:hidden items-center justify-between h-full w-full p-4 lg:hidden">
             <Logo />
@@ -25,11 +25,8 @@ onMounted(() => {
             </div>
         </div>
         <!-- desktop -->
-        <div class="hidden lg:flex flex-col w-[250px] h-screen justify-between border-r">
+        <div class="hidden lg:flex flex-col w-[250px] h-screen justify-between sticky top-0">
             <sidebarMenu />
-            <div>
-                UserItems
-            </div>
         </div>
     </div>
 </template>

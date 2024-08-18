@@ -1,16 +1,34 @@
-<script setup>
-const loading = ref(false)
+<script setup lang="ts">
+import { addPost } from '~/lib/controllers/posts';
+import { getAllPosts } from '~/lib/controllers/posts';
+import type { ICreatePost, IPost } from '~/lib/models/post';
+
+//variables
+const posts = ref<IPost[]|[]>([])
+const loader = ref<boolean>(true)
+
+//function
+async function getAllPost() {
+    posts.value = await getAllPosts()
+    loader.value = false    
+}
+
+async function submit(post: ICreatePost) {    
+    posts.value = await addPost(post);
+}
+
+//lifecycle
+onMounted(async () => {
+    loader.value = true
+    //get posts
+    await getAllPost()
+})
 </script>
 
 <template>
-    <div>
-        <Button class="relative inline-flex items-center justify-start overflow-hidden font-medium transition-all bg-indigo-100 rounded hover:bg-white group py-1.5 px-2.5">
-            <span
-                class="w-56 h-48 rounded bg-indigo-600 absolute bottom-0 left-0 translate-x-full ease-out duration-500 transition-all translate-y-full mb-9 ml-9 group-hover:ml-0 group-hover:mb-32 group-hover:translate-x-0"></span>
-            <span
-                class="relative w-full text-left text-indigo-600 transition-colors duration-300 ease-in-out group-hover:text-white">
-                Click me
-            </span>
-        </Button>
+    <div class="grid gap-6">
+        <h1>Feeds</h1>
+        <postInput @submit="submit"/>
+        <postFeed v-if="posts.length > 0" :posts="posts" :loader="loader" />
     </div>
-</template>
+</template> 

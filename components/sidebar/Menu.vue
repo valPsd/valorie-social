@@ -1,4 +1,8 @@
-<script setup>
+<script setup lang="ts">
+import { useRoute, useRouter } from 'vue-router'
+import { getCurrentUser } from '~/lib/controllers/users';
+
+//variables
 const items = reactive([
     {
         title: "News Feed",
@@ -16,20 +20,45 @@ const items = reactive([
         icon: "icon-park-solid:setting"
     }
 ])
+const clickedPath = ref('')
+const route = useRoute()
+const router = useRouter()
+const userDetail = ref();
+
+//functions
+const isCurrentPage = (path: string) => { return clickedPath.value == path ? 'color: white' : 'color: black' }
+function changeColorOnClickItem(path: string) {
+    clickedPath.value = path
+}
+
+//lifecycle
+onMounted(async () => {
+    await router.isReady()
+    clickedPath.value = route.path
+
+    userDetail.value = await getCurrentUser();
+})
+
+watch(() => route.path,
+    (newPath) => clickedPath.value = newPath)
 </script>
 
 <template>
     <div>
-        <header class="flex items-center gap-2 p-4 hover:sacle-[101%] transition cursor-pointer">
+        <header class="grid place-content-center text-center gap-4 p-10 hover:sacle-[101%] transition cursor-pointer">
             <Logo />
-            <p class="font-bold">Feeds</p>
+            <div>
+                <h3 v-if="userDetail">{{ userDetail.name }}</h3>
+                <p class="text-slate-400" v-if="userDetail">@{{ userDetail.username }}</p>
+            </div>
         </header>
         <div class="px-4 grow">
-            <div class="grid gap-4">
-                <NuxtLink :href="item.path" v-for='(item, index) in items' :key="index"
-                    class="flex items-center gap-2 px-2 py-1 transition cursor-pointer hover:bg-neutral-100 rounded-lg">
-                    <Icon size="20" :name="item.icon" color="black"/>
-                    <span>{{ item.title }}</span>
+            <div class="grid gap-3">
+                <NuxtLink v-for='(item, index) in items' @click="changeColorOnClickItem(item.path)" :href="item.path"
+                    :key="index" class="flex items-center gap-4 px-4 py-3 transition cursor-pointer rounded-[15px]"
+                    :class="clickedPath == item.path ? 'bg-black hover:bg-zinc-900' : 'bg-white hover:bg-neutral-100'">
+                    <Icon size="20" :name="item.icon" :style="isCurrentPage(item.path)" />
+                    <span :style="isCurrentPage(item.path)">{{ item.title }}</span>
                 </NuxtLink>
             </div>
         </div>
