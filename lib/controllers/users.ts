@@ -1,7 +1,8 @@
 import type { AxiosResponse } from 'axios';
 import { axiosClient } from './api/createAxios';
+import type { IUser } from '../models/user';
 
-let currentUser: {};
+let currentUser: IUser;
 
 async function getSpecificUser(userId: number): Promise<void> {
   try {
@@ -23,7 +24,7 @@ async function getUsers(): Promise<[]> {
   }
 };
 
-async function getCurrentUser(): Promise<{}> {
+async function getCurrentUser(): Promise<IUser> {
   if (!currentUser) {
     await getSpecificUser(2);
   }

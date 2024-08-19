@@ -4,7 +4,7 @@ import { getAllPosts } from '~/lib/controllers/posts';
 import type { ICreatePost, IPost } from '~/lib/models/post';
 
 //variables
-const posts = ref<IPost[]|[]>([])
+const posts = ref<IPost[]|any[]>([])
 const loader = ref<boolean>(true)
 
 //function

@@ -2,12 +2,15 @@
 import { deletePost, updatePost } from '~/lib/controllers/posts';
 import { getCurrentUser } from '~/lib/controllers/users';
 import type { IPost } from '~/lib/models/post';
+import { toast } from '../ui/toast';
+import type { IUser } from '~/lib/models/user';
 
 const props = defineProps<{ posts: IPost[], loader: boolean }>()
 
 //variables
-const user = ref()
+const user = ref<IUser>()
 const posts = ref(props.posts)
+const filteredPosts = ref<any[]>([])
 const loader = ref(props.loader)
 const editValue = reactive(
     {
@@ -21,6 +24,9 @@ const isLoadingDelete = ref(false)
 const chooseShowOnFeed = ref(0)
 
 //functions
+const filterPost = () => {
+    filteredPosts.value = posts.value.filter((post) => post.userId == user.value!.id);
+}
 const onClickFilter = (option: number) => {
     chooseShowOnFeed.value = option;
 }
@@ -35,8 +41,15 @@ const onClickExit = () => {
     isShowEdit.value = false;
 }
 async function onUpdate() {
+    if (!editValue.editText || editValue.editText == '') {
+        toast({
+            title: 'Please type something to share.',
+        })
+        return;
+    }
     isLoadingEdit.value = true;
     posts.value = await updatePost({ postText: editValue.editText, id: editValue.editId });
+    filterPost();
     onClickExit();
     isLoadingEdit.value = false;
 }
@@ -44,6 +57,7 @@ async function onDelete(id: number) {
     editValue.editId = id;
     isLoadingDelete.value = true;
     posts.value = await deletePost(id);
+    filterPost();
     editValue.editId = 0;
     isLoadingDelete.value = false;
 }
@@ -51,17 +65,24 @@ async function onDelete(id: number) {
 //lifecycle
 onMounted(async () => {
     user.value = await getCurrentUser()
+    filterPost();
     isLoadingEdit.value = false;
+    chooseShowOnFeed.value = 0;
 })
 
 watch(() => props.posts, async (newValue) => {
     posts.value = newValue
+    filterPost();
 })
 </script>
 
 <template>
     <Skeleton v-if="loader" class="h-[200px] w-full rounded-xl" />
-    <div v-for="(post, index) in posts">
+    <div class="flex gap-3">
+        <Button class="rounded-full border" :class="chooseShowOnFeed == 0 ? 'bg-black text-white hover:text-grey' : 'bg-white text-black hover:text-white'" @click="onClickFilter(0)">All post</Button>
+        <Button class="rounded-full border" :class="chooseShowOnFeed == 1 ? 'bg-black text-white hover:text-grey' : 'bg-white text-black hover:text-white'" @click="onClickFilter(1)">Your post</Button>
+    </div>
+    <div v-for="(post) in chooseShowOnFeed == 0 ? posts : filteredPosts">
         <Skeleton v-if="isLoadingDelete && editValue.editId == post.id" class="h-[200px] w-full rounded-xl" />
         <Card v-if="!loader && (!isLoadingDelete || editValue.editId != post.id)" class="bg-neutral-700">
             <CardHeader>
@@ -85,7 +106,7 @@ watch(() => props.posts, async (newValue) => {
                         </div>
                         <div>
                             <AlertDialog>
-                                <AlertDialogTrigger as-child>
+                                <AlertDialogTrigger>
                                     <Icon v-if="user && user.id == post.userId" class="cursor-pointer"
                                         name="mdi:delete-outline" size="20" style="color:white" />
                                 </AlertDialogTrigger>
